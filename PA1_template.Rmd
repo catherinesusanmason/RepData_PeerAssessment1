@@ -59,7 +59,7 @@ The interval which on average across all the days in the dataset, contains the m
         max_interval
 ```
 
-## Imputing missing values
+## Inputing missing values
 
 We now want to look at the impact of missing data in the dataset. The number of missing measurements in the dataset is:
 
