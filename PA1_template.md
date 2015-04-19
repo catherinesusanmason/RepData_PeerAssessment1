@@ -16,6 +16,12 @@ The variables included in this dataset are:
     interval: Identifier for the 5-minute interval in which measurement was taken
 
 
+```r
+    setwd("~/Data Science/Reproducible research")
+library("knitr")
+library("dplyr")
+```
+
 ```
 ## 
 ## Attaching package: 'dplyr'
@@ -29,18 +35,41 @@ The variables included in this dataset are:
 ##     intersect, setdiff, setequal, union
 ```
 
+```r
+    activity<- read.csv("activity.csv", header=TRUE)
+```
+
 ## What is mean total number of steps taken per day?
 
 The first analysis is to review the total number of steps taken per day? 
 The histogram below shows the total number of steps taken each day
+
+
+```r
+        num_steps<- aggregate(activity$steps, by=list(activity$date), sum)
+        num_steps<- rename(num_steps, date=Group.1, steps=x)
+        hist_steps<- hist(num_steps$steps, breaks=18, col="red", main="Number of steps per day", xlab="number of steps")
+```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
 
 The mean and median of this data are:
 
 
+```r
+        mean_steps<- mean(num_steps$steps, na.rm=TRUE)
+        # mean steps =
+        mean_steps
+```
+
 ```
 ## [1] 10766.19
+```
+
+```r
+        median_steps<-median(num_steps$steps, na.rm=TRUE)
+        #median steps =
+        median_steps
 ```
 
 ```
@@ -52,6 +81,13 @@ The mean and median of this data are:
 How does the activity pattern vary throughout the day?
 
 The chart below shows how the activity varies through the day per 5 minute interval based on the average number of steps taken, averaged across all days
+
+
+```r
+        agg<- aggregate (activity$steps, by=list(activity$interval), mean, na.rm=TRUE)
+        agg<- rename (agg, int= Group.1, mean_steps=x)
+        steps_int<- plot(agg$int, agg$mean_steps, type="l", xlab="Interval", ylab="# steps") 
+```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
@@ -68,6 +104,12 @@ The interval which on average across all the days in the dataset, contains the m
 We now want to look at the impact of missing data in the dataset. The number of missing measurements in the dataset is:
 
 
+```r
+        all<- cbind (activity, agg)
+        no_na<- sum(is.na(all$steps))
+        no_na
+```
+
 ```
 ## [1] 2304
 ```
@@ -76,14 +118,54 @@ Next we fill in the missing values.  The method chosen is to calculate the mean 
 
 The charts below show a comparison of the original dataset and the modified dataset with the missing values replaced by the calcualted mean per 5 min interval.
 
+
+```r
+        all_steps <- ifelse(is.na(all$steps), all$mean_steps,
+                            ifelse(!is.na(all$steps), all$steps,1)
+        )      
+        all_steps<- as.data.frame(all_steps)
+        all<- cbind(all,all_steps)
+        all<- select (all, all_steps, interval, date)
+
+        num_steps_all<- aggregate(all$all_steps, by=list(all$date), sum)
+        num_steps_all<- rename(num_steps_all, date=Group.1, steps_all=x)
+
+        par(mfrow = c(2,1), mar=c(4,2,2,2), oma= c(1.5,2,1,1))
+        hist(num_steps$steps, breaks=18, col="red", main="Number of steps per day", xlab="number of steps", ylim=c(0,15))
+        hist(num_steps_all$steps_all, breaks=18, col="red", main="Number of steps per day", xlab="number of steps, missing measurements replaced", ylim=c(0,15))
+```
+
 ![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 We now want to see if there is a difference between the number of steps made during weekdays and weekends.  Using the modified datset where the missing values have been replaced, the following charts show plots of the number of steps taken throughout the day for weekdays and weekends.  
+
+```r
+        all$date<- as.Date(all$date)
+        all<- mutate (all, day=weekdays(date))
+
+      ## subset data to separate weekday and weekends
+
+        weekend<- filter(all, day == "Saturday" | day =="Sunday")
+        weekday<- filter(all, !day == "Saturday" & !day =="Sunday")
+
+      ## plot charts to show difference
+
+        agg_weekday<- aggregate (weekday$all_steps, by=list(weekday$interval), mean, na.rm=TRUE)
+        agg_weekday<- rename (agg_weekday, int= Group.1, mean_steps=x)
+        
+        agg_weekend<- aggregate (weekend$all_steps, by=list(weekend$interval), mean, na.rm=TRUE)
+        agg_weekend<- rename (agg_weekend, int= Group.1, mean_steps=x)
+
+        par(mfrow = c(2,1), mar=c(4,2,2,2), oma= c(0.2,2,1,1))
+        plot(agg_weekday$int, agg_weekday$mean_steps, type="l", xlab="Interval", ylab="# steps", main="Activity measure throughout weekdays", ylim=c(0,200))
+        plot(agg_weekend$int, agg_weekend$mean_steps, type="l", xlab="Interval", ylab="# steps", main="Activity measured during weekends", ylim=c(0,200))
+```
+
 ![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
 We can clearly see that activity levels remain higher during the weekends.
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+

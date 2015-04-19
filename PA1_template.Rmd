@@ -2,7 +2,10 @@
 title: "RR Peer assignment 1"
 author: "Cathy Mason"
 date: "Friday, April 17, 2015"
-output: html_document
+output:
+  html_document:
+    fig_caption: yes
+    keep_md: yes
 ---
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
@@ -18,7 +21,7 @@ The variables included in this dataset are:
     date: The date on which the measurement was taken in YYYY-MM-DD format
     interval: Identifier for the 5-minute interval in which measurement was taken
 
-```{r, echo=FALSE}
+```{r}
     setwd("~/Data Science/Reproducible research")
 library("knitr")
 library("dplyr")
@@ -30,7 +33,7 @@ library("dplyr")
 The first analysis is to review the total number of steps taken per day? 
 The histogram below shows the total number of steps taken each day
 
-```{r, echo=FALSE}
+```{r}
         num_steps<- aggregate(activity$steps, by=list(activity$date), sum)
         num_steps<- rename(num_steps, date=Group.1, steps=x)
         hist_steps<- hist(num_steps$steps, breaks=18, col="red", main="Number of steps per day", xlab="number of steps")
@@ -38,7 +41,7 @@ The histogram below shows the total number of steps taken each day
 
 The mean and median of this data are:
 
-```{r, echo=FALSE}
+```{r}
         mean_steps<- mean(num_steps$steps, na.rm=TRUE)
         # mean steps =
         mean_steps
@@ -53,7 +56,7 @@ How does the activity pattern vary throughout the day?
 
 The chart below shows how the activity varies through the day per 5 minute interval based on the average number of steps taken, averaged across all days
 
-```{r, echo=FALSE}
+```{r}
         agg<- aggregate (activity$steps, by=list(activity$interval), mean, na.rm=TRUE)
         agg<- rename (agg, int= Group.1, mean_steps=x)
         steps_int<- plot(agg$int, agg$mean_steps, type="l", xlab="Interval", ylab="# steps") 
@@ -71,7 +74,7 @@ The interval which on average across all the days in the dataset, contains the m
 
 We now want to look at the impact of missing data in the dataset. The number of missing measurements in the dataset is:
 
-```{r, echo=FALSE}
+```{r}
         all<- cbind (activity, agg)
         no_na<- sum(is.na(all$steps))
         no_na
@@ -81,7 +84,7 @@ Next we fill in the missing values.  The method chosen is to calculate the mean 
 
 The charts below show a comparison of the original dataset and the modified dataset with the missing values replaced by the calcualted mean per 5 min interval.
 
-```{r,echo=FALSE}
+```{r}
         all_steps <- ifelse(is.na(all$steps), all$mean_steps,
                             ifelse(!is.na(all$steps), all$steps,1)
         )      
@@ -100,7 +103,7 @@ The charts below show a comparison of the original dataset and the modified data
 ## Are there differences in activity patterns between weekdays and weekends?
 
 We now want to see if there is a difference between the number of steps made during weekdays and weekends.  Using the modified datset where the missing values have been replaced, the following charts show plots of the number of steps taken throughout the day for weekdays and weekends.  
-```{r, echo=FALSE}
+```{r}
         all$date<- as.Date(all$date)
         all<- mutate (all, day=weekdays(date))
 
@@ -126,4 +129,4 @@ We now want to see if there is a difference between the number of steps made dur
 We can clearly see that activity levels remain higher during the weekends.
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
